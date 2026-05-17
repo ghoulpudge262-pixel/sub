@@ -1,8 +1,4 @@
 {
-  "name": "vpn-sub-generator",
-  "version": "1.0.0",
-  "type": "module",
-  "engines": {
-    "node": ">=18"
-  }
+  "name": "vpn-sub",
+  "version": "1.0.0"
 }
