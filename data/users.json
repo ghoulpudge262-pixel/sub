@@ -1,1 +1,11 @@
-
+{
+  "demo-user-123": {
+    "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Demo User",
+    "plan": "premium",
+    "traffic_used": 5368709120,
+    "traffic_limit": 107374182400,
+    "expire": 1767225600,
+    "created": 1735689600
+  }
+}
