@@ -1,10 +1,22 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+const servers = [
+  { flag: "🇩🇪", country: "Германия", city: "Франкфурт", tier: "premium" },
+  { flag: "🇳🇱", country: "Нидерланды", city: "Амстердам", tier: "premium" },
+  { flag: "🇪🇪", country: "Эстония", city: "Таллин", tier: "free" },
+  { flag: "🇫🇮", country: "Финляндия", city: "Хельсинки", tier: "premium" },
+  { flag: "🇸🇪", country: "Швеция", city: "Стокгольм", tier: "premium" }
+];
 
-const servers = JSON.parse(readFileSync(join(process.cwd(), 'data/servers.json'), 'utf-8'));
-const users = JSON.parse(readFileSync(join(process.cwd(), 'data/users.json'), 'utf-8'));
+const users = {
+  "demo-user-123": {
+    name: "Demo User",
+    plan: "premium",
+    traffic_used: 5368709120,
+    traffic_limit: 107374182400,
+    expire: 1767225600
+  }
+};
 
-export default function handler(req, res) {
+module.exports = (req, res) => {
   const userId = req.query.id;
   const user = users[userId];
 
@@ -29,11 +41,6 @@ export default function handler(req, res) {
     gbUsed,
     gbTotal,
     percent,
-    servers: availableServers.map(s => ({
-      flag: s.flag,
-      country: s.country,
-      city: s.city,
-      tier: s.tier
-    }))
+    servers: availableServers
   });
-}
+};
