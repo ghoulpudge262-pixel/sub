@@ -1,5 +1,8 @@
-import servers from '../data/servers.json' assert { type: 'json' };
-import users from '../data/users.json' assert { type: 'json' };
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const servers = JSON.parse(readFileSync(join(process.cwd(), 'data/servers.json'), 'utf-8'));
+const users = JSON.parse(readFileSync(join(process.cwd(), 'data/users.json'), 'utf-8'));
 
 export default function handler(req, res) {
   const userId = req.query.id;
@@ -13,26 +16,21 @@ export default function handler(req, res) {
     return res.status(404).send('User not found');
   }
 
-  // Проверка срока действия
   const now = Math.floor(Date.now() / 1000);
   if (user.expire && user.expire < now) {
     return res.status(403).send('Subscription expired');
   }
 
-  // Проверка трафика
   if (user.traffic_used >= user.traffic_limit) {
     return res.status(403).send('Traffic limit reached');
   }
 
-  // Фильтрация серверов по тарифу
   const availableServers = servers.filter(s => {
     if (user.plan === 'premium') return true;
     return s.tier === 'free';
   });
 
-  // Генерация ссылок
-  const links = availableServers.map((s, index) => {
-    const num = String(index + 1).padStart(2, '0');
+  const links = availableServers.map((s) => {
     const remark = encodeURIComponent(
       `${s.flag} ${s.country} | ${s.city} ${s.tier === 'premium' ? '⚡' : '🆓'}`
     );
@@ -50,7 +48,6 @@ export default function handler(req, res) {
       `#${remark}`;
   });
 
-  // Информационный "сервер" с балансом и сроком
   const daysLeft = Math.floor((user.expire - now) / 86400);
   const gbLeft = ((user.traffic_limit - user.traffic_used) / 1024 ** 3).toFixed(1);
   const infoRemark = encodeURIComponent(
@@ -61,13 +58,11 @@ export default function handler(req, res) {
   const subContent = links.join('\n');
   const base64 = Buffer.from(subContent).toString('base64');
 
-  // Красивые заголовки
   const title = `🚀 MyVPN | ${user.name}`;
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Profile-Title', 'base64:' + Buffer.from(title).toString('base64'));
   res.setHeader('Profile-Update-Interval', '12');
   res.setHeader('Support-URL', 'https://t.me/yourchannel');
-  res.setHeader('Profile-Web-Page-Url', `https://${req.headers.host}/sub/${userId}`);
   res.setHeader(
     'Subscription-Userinfo',
     `upload=0; download=${user.traffic_used}; total=${user.traffic_limit}; expire=${user.expire}`
