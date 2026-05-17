@@ -1,1 +1,12 @@
-
+{
+  "name": "vpn-sub-generator",
+  "version": "1.0.0",
+  "description": "Beautiful VPN subscription generator",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
