@@ -1,5 +1,15 @@
 {
   "rewrites": [
-    { "source": "/sub/:path*", "destination": "/api/sub" }
+    { "source": "/sub/:id", "destination": "/api/sub?id=:id" },
+    { "source": "/stats/:id", "destination": "/api/stats?id=:id" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
   ]
 }
