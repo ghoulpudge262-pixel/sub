@@ -1,25 +1,35 @@
 const crypto = require('crypto');
 
+// ⬇️ Список твоих VPN-серверов
 const servers = [
   {
-    flag: "🇩🇪", country: "Германия", city: "Франкфурт", tier: "premium",
+    flag: "🇩🇪", country: "Германия", city: "Франкфурт",
     host: "de1.example.com", port: 443,
     pbk: "REPLACE_PUBLIC_KEY", sni: "www.google.com", sid: "abcd1234",
     flow: "xtls-rprx-vision"
   },
-  // ... другие серверы
+  {
+    flag: "🇳🇱", country: "Нидерланды", city: "Амстердам",
+    host: "nl1.example.com", port: 443,
+    pbk: "REPLACE_PUBLIC_KEY", sni: "www.microsoft.com", sid: "efgh5678",
+    flow: "xtls-rprx-vision"
+  },
+  {
+    flag: "🇪🇪", country: "Эстония", city: "Таллин",
+    host: "ee1.example.com", port: 443,
+    pbk: "REPLACE_PUBLIC_KEY", sni: "www.apple.com", sid: "ijkl9012",
+    flow: "xtls-rprx-vision"
+  }
 ];
 
-// Генерируем UUID v5 - такой же как в Python
+// Генерация UUID v5 (точно такая же как в Python uuid.uuid5)
 function generateUUID(telegramId) {
   const namespace = '12345678-1234-5678-1234-567812345678';
   const namespaceBytes = Buffer.from(namespace.replace(/-/g, ''), 'hex');
   const nameBytes = Buffer.from(String(telegramId));
   
-  const hash = crypto.createHash('sha1')
-    .update(namespaceBytes)
-    .update(nameBytes)
-    .digest();
+  const combined = Buffer.concat([namespaceBytes, nameBytes]);
+  const hash = crypto.createHash('sha1').update(combined).digest();
   
   const bytes = Buffer.from(hash.slice(0, 16));
   bytes[6] = (bytes[6] & 0x0f) | 0x50;
@@ -36,13 +46,12 @@ module.exports = (req, res) => {
     return res.status(400).send('Missing user id');
   }
   
-  // Генерируем UUID для юзера (такой же как в боте)
+  // Генерируем UUID - такой же как в боте
   const userUuid = generateUUID(telegramId);
   
+  // Формируем VLESS-ссылки для всех серверов
   const links = servers.map(s => {
-    const remark = encodeURIComponent(
-      `${s.flag} ${s.country} | ${s.city} ${s.tier === 'premium' ? '⚡' : '🆓'}`
-    );
+    const remark = encodeURIComponent(`${s.flag} ${s.country} | ${s.city} ⚡`);
     return `vless://${userUuid}@${s.host}:${s.port}` +
       `?type=tcp&security=reality&fp=chrome` +
       `&pbk=${s.pbk}&sni=${s.sni}&sid=${s.sid}` +
@@ -50,13 +59,14 @@ module.exports = (req, res) => {
       `#${remark}`;
   });
   
-  // Информационный заголовок
+  // Инфо-строка
   const infoRemark = encodeURIComponent(`👤 ID: ${telegramId}`);
   links.unshift(`vless://00000000-0000-0000-0000-000000000000@127.0.0.1:1#${infoRemark}`);
   
   const subContent = links.join('\n');
   const base64 = Buffer.from(subContent).toString('base64');
   
+  // Заголовки
   const title = `🚀 MyVPN`;
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Profile-Title', 'base64:' + Buffer.from(title).toString('base64'));
